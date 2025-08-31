@@ -10,6 +10,7 @@ import { WebSocketServerTransport } from '../server/websocket.js'
 import { onSignals } from '../lib/onSignals.js'
 import { serializeCorsOrigin } from '../lib/serializeCorsOrigin.js'
 import { createAuthMiddleware } from '../lib/authMiddleware.js'
+import { createDataEndpoints } from '../lib/dataOperations.js'
 
 export interface StdioToWsArgs {
   stdioCmd: string
@@ -19,6 +20,8 @@ export interface StdioToWsArgs {
   corsOrigin: CorsOptions['origin']
   healthEndpoints: string[]
   authToken?: string
+  dataDir?: string
+  dataPath?: string
 }
 
 export async function stdioToWs(args: StdioToWsArgs) {
@@ -30,6 +33,8 @@ export async function stdioToWs(args: StdioToWsArgs) {
     healthEndpoints,
     corsOrigin,
     authToken,
+    dataDir,
+    dataPath,
   } = args
   logger.info(`  - port: ${port}`)
   logger.info(`  - stdio: ${stdioCmd}`)
@@ -124,6 +129,11 @@ export async function stdioToWs(args: StdioToWsArgs) {
 
         res.send('ok')
       })
+    }
+
+    // Add data endpoints if configured
+    if (dataDir && dataPath) {
+      createDataEndpoints(app, { dataDir, dataPath, logger }, authMiddleware)
     }
 
     const httpServer = createServer(app)

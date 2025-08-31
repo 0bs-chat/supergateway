@@ -9,6 +9,7 @@ import { getVersion } from '../lib/getVersion.js'
 import { onSignals } from '../lib/onSignals.js'
 import { serializeCorsOrigin } from '../lib/serializeCorsOrigin.js'
 import { createAuthMiddleware } from '../lib/authMiddleware.js'
+import { createDataEndpoints } from '../lib/dataOperations.js'
 
 export interface StdioToStreamableHttpArgs {
   stdioCmd: string
@@ -19,6 +20,8 @@ export interface StdioToStreamableHttpArgs {
   healthEndpoints: string[]
   headers: Record<string, string>
   authToken?: string
+  dataDir?: string
+  dataPath?: string
 }
 
 const setResponseHeaders = ({
@@ -44,6 +47,8 @@ export async function stdioToStatelessStreamableHttp(
     healthEndpoints,
     headers,
     authToken,
+    dataDir,
+    dataPath,
   } = args
 
   logger.info(
@@ -83,6 +88,11 @@ export async function stdioToStatelessStreamableHttp(
       })
       res.send('ok')
     })
+  }
+
+  // Add data endpoints if configured
+  if (dataDir && dataPath) {
+    createDataEndpoints(app, { dataDir, dataPath, logger }, authMiddleware)
   }
 
   app.post(streamableHttpPath, authMiddleware, async (req, res) => {

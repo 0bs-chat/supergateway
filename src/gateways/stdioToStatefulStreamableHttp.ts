@@ -9,6 +9,7 @@ import { getVersion } from '../lib/getVersion.js'
 import { onSignals } from '../lib/onSignals.js'
 import { serializeCorsOrigin } from '../lib/serializeCorsOrigin.js'
 import { createAuthMiddleware } from '../lib/authMiddleware.js'
+import { createDataEndpoints } from '../lib/dataOperations.js'
 import { randomUUID } from 'node:crypto'
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js'
 import { SessionAccessCounter } from '../lib/sessionAccessCounter.js'
@@ -23,6 +24,8 @@ export interface StdioToStreamableHttpArgs {
   headers: Record<string, string>
   sessionTimeout: number | null
   authToken?: string
+  dataDir?: string
+  dataPath?: string
 }
 
 const setResponseHeaders = ({
@@ -49,6 +52,8 @@ export async function stdioToStatefulStreamableHttp(
     headers,
     sessionTimeout,
     authToken,
+    dataDir,
+    dataPath,
   } = args
 
   logger.info(
@@ -96,6 +101,11 @@ export async function stdioToStatefulStreamableHttp(
       })
       res.send('ok')
     })
+  }
+
+  // Add data endpoints if configured
+  if (dataDir && dataPath) {
+    createDataEndpoints(app, { dataDir, dataPath, logger }, authMiddleware)
   }
 
   // Map to store transports by session ID

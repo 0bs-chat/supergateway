@@ -10,6 +10,7 @@ import { getVersion } from '../lib/getVersion.js'
 import { onSignals } from '../lib/onSignals.js'
 import { serializeCorsOrigin } from '../lib/serializeCorsOrigin.js'
 import { createAuthMiddleware } from '../lib/authMiddleware.js'
+import { createDataEndpoints } from '../lib/dataOperations.js'
 
 export interface StdioToSseArgs {
   stdioCmd: string
@@ -22,6 +23,8 @@ export interface StdioToSseArgs {
   healthEndpoints: string[]
   headers: Record<string, string>
   authToken?: string
+  dataDir?: string
+  dataPath?: string
 }
 
 const setResponseHeaders = ({
@@ -47,6 +50,8 @@ export async function stdioToSse(args: StdioToSseArgs) {
     healthEndpoints,
     headers,
     authToken,
+    dataDir,
+    dataPath,
   } = args
 
   logger.info(
@@ -110,6 +115,11 @@ export async function stdioToSse(args: StdioToSseArgs) {
       })
       res.send('ok')
     })
+  }
+
+  // Add data endpoints if configured
+  if (dataDir && dataPath) {
+    createDataEndpoints(app, { dataDir, dataPath, logger }, authMiddleware)
   }
 
   app.get(ssePath, authMiddleware, async (req, res) => {

@@ -128,6 +128,16 @@ async function main() {
       description:
         'Session timeout in milliseconds. Only supported for stateful stdio→StreamableHttp. If not set, the session will only be deleted when client transport explicitly terminates the session.',
     })
+    .option('data_dir', {
+      type: 'string',
+      default: '/mnt',
+      description: 'Base directory for data operations',
+    })
+    .option('data_path', {
+      type: 'string',
+      default: '/data',
+      description: 'URL path for data operations endpoint',
+    })
     .help()
     .parseSync()
 
@@ -179,6 +189,8 @@ async function main() {
             logger,
           }),
           authToken: argv.auth,
+          dataDir: argv.data_dir,
+          dataPath: argv.data_path,
         })
       } else if (argv.outputTransport === 'ws') {
         await stdioToWs({
@@ -189,6 +201,8 @@ async function main() {
           corsOrigin: corsOrigin({ argv }),
           healthEndpoints: argv.healthEndpoint as string[],
           authToken: argv.auth,
+          dataDir: argv.data_dir,
+          dataPath: argv.data_path,
         })
       } else if (argv.outputTransport === 'streamableHttp') {
         const stateful = argv.stateful
@@ -222,6 +236,8 @@ async function main() {
             }),
             sessionTimeout,
             authToken: argv.auth,
+            dataDir: argv.data_dir,
+            dataPath: argv.data_path,
           })
         } else {
           logger.info('Running stateless server')
@@ -238,6 +254,8 @@ async function main() {
               logger,
             }),
             authToken: argv.auth,
+            dataDir: argv.data_dir,
+            dataPath: argv.data_path,
           })
         }
       } else {
